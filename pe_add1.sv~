@@ -1,0 +1,5 @@
+`default_nettype none
+module pe_add1
+  (input wire CLK, RST,
+   input wire )
+`default_nettype wire

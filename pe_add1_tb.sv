@@ -1,0 +1,66 @@
+`timescale 1ns/1ps
+module pe_tb();
+   parameter STEP = 10;
+   reg	     RST, CLK;
+   
+   reg [63:0] PEADD1IN;
+   wire [63:0] PEADD1OUT;
+   
+   reg [63:0]  CNT;
+   
+   pe_add1  uut (.RST(RST),
+		 .CLK(CLK),
+		 .D      (D),             // I [3:0][63:0]
+		 .D_VALID(D_VALID),       // I [3:0]
+		 .D_BP   (),              // O [3:0]
+		 .Q       (Q),            // O [3:0][63:0]
+		 .Q_VALID(),              // O [3:0]
+		 .Q_BP   (Q_BP),          // I [3:0]
+		 .Q_SOF   ());            // Not connected
+   
+   initial CLK <= 1;
+   always #(STEP/2) CLK <= ~CLK;
+
+   initial begin
+      $shm_open();
+      $shm_probe("ASM");
+
+      RST <= 1;
+      D <= 0;
+      D_VALID <= 0;
+      Q_BP <= 0;
+
+      #(12.1*STEP)
+      RST <= 0;
+      
+      #(1000*STEP)
+      $finish;
+   end // initial begin
+
+   always @ (posedge CLK) begin
+      if (RST) begin
+	 CNT <= 0;
+      end else begin 
+	 CNT <= CNT + 1;
+	 case (CNT)
+	   100: begin
+	      DEST[0][0] <= {8'h01, 56'h4};
+	      LEN[0] <= 500;
+	      GO[0] <= 1;
+	      
+	      DEST[1][0] <= {8'h01, 56'h4};
+	      LEN[1] <= 500;
+	      GO[1] <= 1;
+	      	      
+	      DEST[2][0] <= {8'h01, 56'h4};
+	      LEN[2] <= 500;
+	      GO[2] <= 1;
+	      
+	      DEST[3][0] <= {8'h01, 56'h4};
+	      LEN[3] <= 500;
+	      GO[3] <= 1;
+	   end // case: 101
+	 endcase // case (CNT)
+      end
+   end // always @ (posedge CLK)
+endmodule

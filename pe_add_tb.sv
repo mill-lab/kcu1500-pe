@@ -1,0 +1,84 @@
+`timescale 1ns/1ps
+module pe_add_tb();
+   parameter STEP = 10;
+   reg	     RST, CLK;
+
+   reg [7:0][63:0] D1, D2;
+   reg		   D1_VALID, D2_VALID;
+   wire [7:0][63:0] Q;
+   wire		    Q_VALID;
+
+   reg [63:0]	    CNT;
+   
+   pe_add peadd
+     (.RST(RST),
+      .CLK(CLK),
+      .D1(D1),
+      .D2(D2),
+      .D1_VALID(D1_VALID),
+      .D2_VALID(D2_VALID),
+      .D1_BP(D1_BP),
+      .D2_BP(D2_BP),
+      .Q(Q),
+      .Q_VALID(Q_VALID)
+      );
+   
+   initial CLK <= 1;
+   always #(STEP/2) CLK <= ~CLK;
+
+   initial begin
+      $shm_open();
+      $shm_probe("ASM");
+
+      RST <= 1;
+      D1 <= 0;
+      D2 <= 0;
+      D1_VALID <= 0;
+      D2_VALID <= 0;
+      
+      #(12.1*STEP)
+      RST <= 0;
+      
+      #(1000*STEP)
+      $finish;
+   end // initial begin
+
+   always @ (posedge CLK) begin
+      if (RST) begin
+	 CNT <= 0;
+      end else begin 
+	 CNT <= CNT + 1;
+	 case (CNT)
+	   100: begin
+	      D1[0] <= 64'd1;
+	      D1[1] <= 64'd2;
+	      D1[2] <= 64'd3;
+	      D1[3] <= 64'd4;
+	      D1[4] <= 64'd5;
+	      D1[5] <= 64'd6;
+	      D1[6] <= 64'd7;
+	      D1[7] <= 64'd8;
+
+	      D2[0] <= 64'd1;
+	      D2[1] <= 64'd2;
+	      D2[2] <= 64'd3;
+	      D2[3] <= 64'd4;
+	      D2[4] <= 64'd5;
+	      D2[5] <= 64'd6;
+	      D2[6] <= 64'd7;
+	      D2[7] <= 64'd8;
+	      
+	      D1_VALID <= 1;
+	      D2_VALID <= 1;
+	   end // case: 100
+	   101: begin
+	      D1 <= 0;
+	      D2 <= 0;
+
+	      D1_VALID <= 0;
+	      D2_VALID <= 0;
+	   end // case: 101
+	 endcase // case (CNT)
+      end
+   end // always @ (posedge CLK)
+endmodule

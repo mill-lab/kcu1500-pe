@@ -1,0 +1,12 @@
+`default_nettype none
+module pe_cp32bit
+  (input wire CLK, RST,
+   input wire [63:0]  PECP32IN,
+   output wire [63:0] PECP32OUT
+   );
+
+   assign PECP32OUT = {PECP32IN[31:0],PECP32IN[31:0]};
+   
+endmodule
+   
+`default_nettype wire
