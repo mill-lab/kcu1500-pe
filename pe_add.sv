@@ -6,12 +6,14 @@ module pe_add
    output wire		   D1_BP, D2_BP,
    
    output wire [7:0][63:0] Q,
-   output wire		   Q_VALID
+   output wire		   Q_VALID,
+   input wire		   Q_BP
    );
 
    wire [7:0][63:0]	   FIFO1_Q, FIFO2_Q;
    wire			   FIFO1_VALID, FIFO2_VALID;
-   wire			   RD_EN = ~(D1_BP | D2_BP);
+   wire			   FIFO1_EMPTY, FIFO2_EMPTY;
+   wire			   RD_EN = ~(Q_BP | FIFO1_EMPTY | FIFO1_EMPTY);
 
    xpm_fifo_sync #(
    .CASCADE_HEIGHT(0),        // DECIMAL
@@ -34,6 +36,7 @@ module pe_add
   )
    xpm_fifo_sync1 (.data_valid(FIFO1_VALID), // O
 		   .dout(FIFO1_Q),           // O
+		   .empty(FIFO1_EMPTY),  // O
 		   .prog_full(D1_BP),        // O
 		   .full(),                  // for test
 		   .din(D1),                 // I
@@ -64,6 +67,7 @@ module pe_add
   )
    xpm_fifo_sync2 (.data_valid(FIFO2_VALID), // O
 		   .dout(FIFO2_Q),           // O
+		   .empty(FIFO2_EMPTY),  // O
 		   .prog_full(D2_BP),        // O
 		   .full(),                  // for test
 		   .din(D2),                 // I
@@ -73,15 +77,20 @@ module pe_add
 		   .wr_en(D2_VALID)          // I
 		   );
 
+// End of xpm_fifo_sync_inst instantiation
+
    reg [7:0][63:0]	   Q_R;
    reg			   Q_VR;
    
    always @ (posedge CLK or posedge RST) begin
       if (RST) begin
-	 
+	 Q_VR = 0;
       end else begin
 	 if (RD_EN) begin
 	    Q_R = FIFO1_Q + FIFO2_Q;
+	    Q_VR = 1;
+	 end else begin
+	    Q_VR = 0;
 	 end
       end
    end
